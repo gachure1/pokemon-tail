@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokedex App with Tailwind CSS</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Additional custom styles if needed */
+    .modal {
+      transition: opacity 0.25s ease;
+    }
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <header class="bg-yellow-400 py-4">
+    <div class="container mx-auto flex justify-center items-center">
+      <h1 class="text-3xl text-white font-semibold">Pokedex</h1>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto py-8">
+
+    <!-- Search Bar -->
+    <div class="mb-8">
+      <form class="flex items-center justify-center">
+        <input id="searchInput" class="w-64 px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" type="search" placeholder="Search" aria-label="Search">
+        <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" type="submit">Search</button>
+        <!-- Additional Filters -->
+      </form>
+    </div>
+
+    <!-- Pokemon List -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="pokemonList">
+      <!-- Pokemon Cards will be inserted dynamically here -->
+    </div>
+
+    <!-- Pagination -->
+    <nav class="flex justify-center mt-8">
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg mr-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="previousPage()">Previous</button>
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg mr-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="goToPage(1)">1</button>
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg mr-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="goToPage(2)">2</button>
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="goToPage(3)">3</button>
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="nextPage()">Next</button>
+    </nav>
+
+    <!-- Detailed View Modal -->
+    <div class="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="pokemonModal">
+      <div class="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
+        <h2 class="text-2xl font-semibold mb-4" id="modalTitle">Bulbasaur</h2>
+        <img src="poke1.jpeg" alt="Bulbasaur" class="mx-auto mb-4">
+        <p class="text-lg mb-2"><strong>Abilities:</strong> Overgrow, Chlorophyll</p>
+        <p class="text-lg"><strong>Stats:</strong> 45, 49, 49, 65, 65, 45</p>
+        <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 mt-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const pokemons = [
+      { name: 'Bulbasaur', type: 'Grass/Poison', img: 'poke1.jpeg', abilities: 'Overgrow, Chlorophyll', stats: '45, 49, 49, 65, 65, 45' },
+      { name: 'Charmander', type: 'Fire', img: 'poke2.jpeg', abilities: 'Blaze, Solar Power', stats: '39, 52, 43, 60, 50, 65' },
+      { name: 'Squirtle', type: 'Water', img: 'poke3.jpeg', abilities: 'Torrent, Rain Dish', stats: '44, 48, 65, 50, 64, 43' },
+      { name: 'Pikachu', type: 'Electric', img: 'poke4.jpeg', abilities: 'Static, Lightning Rod', stats: '35, 55, 40, 50, 50, 90' },
+      { name: 'Jigglypuff', type: 'Normal/Fairy', img: 'poke5.jpeg', abilities: 'Cute Charm, Competitive', stats: '115, 45, 20, 45, 25, 20' },
+      { name: 'Meowth', type: 'Normal', img: 'poke6.jpeg', abilities: 'Pickup, Technician', stats: '40, 45, 35, 40, 40, 90' },
+      { name: 'Psyduck', type: 'Water', img: 'poke7.jpeg', abilities: 'Damp, Cloud Nine', stats: '50, 52, 48, 65, 50, 55' },
+      { name: 'Machop', type: 'Fighting', img: 'poke8.jpeg', abilities: 'Guts, No Guard', stats: '70, 80, 50, 35, 35, 35' },
+      { name: 'Geodude', type: 'Rock/Ground', img: 'poke9.jpeg', abilities: 'Rock Head, Sturdy', stats: '40, 80, 100, 30, 30, 20' },
+      { name: 'Onix', type: 'Rock/Ground', img: 'poke10.jpeg', abilities: 'Rock Head, Sturdy', stats: '35, 45, 160, 30, 45, 70' },
+      { name: 'Cubone', type: 'Ground', img: 'poke11.jpeg', abilities: 'Rock Head, Lightning Rod', stats: '50, 50, 95, 40, 50, 35' },
+      { name: 'Rhyhorn', type: 'Ground/Rock', img: 'poke12.jpeg', abilities: 'Lightning Rod, Rock Head', stats: '80, 85, 95, 30, 30, 25' },
+      { name: 'Horsea', type: 'Water', img: 'poke13.jpeg', abilities: 'Swift Swim, Sniper', stats: '30, 40, 70, 70, 25, 60' },
+      { name: 'Staryu', type: 'Water', img: 'poke14.jpeg', abilities: 'Illuminate, Natural Cure', stats: '30, 45, 55, 70, 55, 85' },
+      { name: 'Magikarp', type: 'Water', img: 'poke15.jpeg', abilities: 'Swift Swim, Rattled', stats: '20, 10, 55, 15, 20, 80' },
+      { name: 'Eevee', type: 'Normal', img: 'poke16.jpeg', abilities: 'Run Away, Adaptability', stats: '55, 55, 50, 45, 65, 55' },
+      { name: 'Vaporeon', type: 'Water', img: 'poke17.jpeg', abilities: 'Water Absorb, Hydration', stats: '130, 65, 60, 110, 95, 65' },
+      { name: 'Jolteon', type: 'Electric', img: 'poke18.jpeg', abilities: 'Volt Absorb, Quick Feet', stats: '65, 65, 60, 110, 95, 130' },
+      { name: 'Flareon', type: 'Fire', img: 'poke19.jpeg', abilities: 'Flash Fire, Guts', stats: '65, 130, 60, 95, 110, 65' },
+      { name: 'Porygon', type: 'Normal', img: 'poke20.jpeg', abilities: 'Trace, Download', stats: '65, 60, 70, 85, 75, 40' },
+      { name: 'Snorlax', type: 'Normal', img: 'poke21.jpeg', abilities: 'Immunity, Thick Fat', stats: '160, 110, 65, 65, 110, 30' }
+      // Add more Pokemon data as needed
+    ];
+
+    const itemsPerPage = 8; // Number of Pokemon per page
+    let currentPage = 1; // Default current page
+
+    // Function to render Pokemon cards based on current page
+    function renderPokemon() {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const slicedPokemon = pokemons.slice(startIndex, endIndex);
+
+      const pokemonList = document.getElementById('pokemonList');
+      pokemonList.innerHTML = ''; // Clear existing list
+
+      slicedPokemon.forEach(pokemon => {
+        const card = `
+          <div class="bg-white rounded-lg shadow-md p-4">
+            <img src="${pokemon.img}" alt="${pokemon.name}" class="mx-auto">
+            <div class="text-center mt-2">
+              <h3 class="text-xl font-semibold text-gray-800">${pokemon.name}</h3>
+              <p class="text-sm text-gray-600">${pokemon.type}</p>
+              <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 mt-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" onclick="openModal('${pokemon.name}')">View Details</button>
+            </div>
+          </div>
+        `;
+        pokemonList.insertAdjacentHTML('beforeend', card);
+      });
+    }
+
+    // Function to navigate to previous page
+    function previousPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPokemon();
+      }
+    }
+
+    // Function to navigate to specific page
+    function goToPage(page) {
+      currentPage = page;
+      renderPokemon();
+    }
+
+    // Function to navigate to next page
+    function nextPage() {
+      const totalPages = Math.ceil(pokemons.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPokemon();
+      }
+    }
+
+    // Function to open modal and populate data
+    function openModal(name) {
+      const pokemon = getPokemonByName(name); // Function to fetch Pokemon data by name
+      if (pokemon) {
+        document.getElementById('modalTitle').innerText = pokemon.name;
+        document.getElementById('modalImg').src = pokemon.img;
+        document.getElementById('abilities').innerText = pokemon.abilities;
+        document.getElementById('stats').innerText = pokemon.stats;
+        document.getElementById('pokemonModal').classList.remove('hidden');
+        document.body.classList.add('modal-active');
+      }
+    }
+
+    // Function to close modal
+    function closeModal() {
+      document.getElementById('pokemonModal').classList.add('hidden');
+      document.body.classList.remove('modal-active');
+    }
+
+    // Sample data fetching function (replace with actual data retrieval logic)
+    function getPokemonByName(name) {
+      return pokemons.find(pokemon => pokemon.name === name);
+    }
+
+    // Initial render
+    renderPokemon();
+  </script>
+
+</body>
+</html>
